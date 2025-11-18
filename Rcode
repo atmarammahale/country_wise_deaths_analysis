@@ -34,3 +34,51 @@ text(x = seq(0.7, by = 1.2, length.out = 15),
      labels = format(top_countries$Confirmed, big.mark = ","),
      pos = 3, cex = 0.7, col = "black")
 
+# ==============================================================================
+# 2. PIE CHART - Distribution of Cases by WHO Region
+# ==============================================================================
+
+# Aggregate data by WHO Region
+region_data <- aggregate(Confirmed ~ `WHO Region`, data = country_wise_latest, sum)
+region_data <- region_data[order(-region_data$Confirmed), ]
+
+# Calculate percentages
+pct <- round(region_data$Confirmed / sum(region_data$Confirmed) * 100, 1)
+labels <- paste(region_data$`WHO Region`, "\n", pct, "%", sep = "")
+
+# Color palette
+colors_pie <- c("#FF6B6B", "#4ECDC4", "#45B7D1", "#FFA07A", "#98D8C8", "#FFD93D")
+
+par(mar = c(2, 2, 4, 2))
+pie(region_data$Confirmed,
+    labels = labels,
+    col = colors_pie,
+    main = "Distribution of Confirmed Cases by WHO Region",
+    cex = 0.9,
+    radius = 1)
+
+
+# ==============================================================================
+# 3. HISTOGRAM - Distribution of Death Rates (Deaths/100 Cases)
+# ==============================================================================
+
+# Remove outliers for better visualization
+death_rates <- country_wise_latest$`Deaths / 100 Cases`
+death_rates <- death_rates[death_rates < 20]  # Filter extreme outliers
+
+par(mar = c(5, 5, 4, 2))
+hist(death_rates,
+     breaks = 30,
+     col = "coral",
+     border = "white",
+     main = "Distribution of COVID-19 Death Rates Across Countries",
+     xlab = "Death Rate (Deaths per 100 Cases)",
+     ylab = "Number of Countries",
+     las = 1,
+     cex.main = 1.2,
+     cex.lab = 1)
+abline(v = mean(death_rates, na.rm = TRUE), col = "darkred", lwd = 2, lty = 2)
+legend("topright",
+       legend = c(paste("Mean:", round(mean(death_rates, na.rm = TRUE), 2))),
+       col = "darkred", lty = 2, lwd = 2, cex = 0.9)
+
