@@ -1,140 +1,36 @@
-# -------------------------------------------------------
-# BASIC INFO CHECK
-# -------------------------------------------------------
-names(country_wise_latest)          # column names
-str(country_wise_latest)            # structure
-summary(country_wise_latest)        # numeric summary
+# COVID-19 Country-wise Data Analysis
+# Dataset: country_wise_latest.csv (already imported as country_wise_latest)
 
-options(scipen = 999)               # remove scientific notation
+# Set options for better display
+options(scipen = 999)  # Disable scientific notation
+par(mar = c(5, 5, 4, 2))  # Set margins for plots
 
+# ==============================================================================
+# 1. BAR CHART - Top 15 Countries by Confirmed Cases (FIXED)
+# ==============================================================================
 
-# =======================================================
-# 1. BAR PLOT – Total Confirmed Cases by WHO Region
-# =======================================================
+# Sort and get top 15 countries
+top_countries <- head(country_wise_latest[order(-country_wise_latest$Confirmed), ], 15)
 
-# Disable scientific notation
-options(scipen = 999)
+# Create color gradient
+colors_bar <- colorRampPalette(c("steelblue", "darkblue"))(15)
 
-# Calculate totals by WHO region
-region_confirmed <- tapply(country_wise_latest$Confirmed,
-                           country_wise_latest$'WHO Region',
-                           sum, na.rm = TRUE)
-
-# Open a bigger plotting window (fixes small chart / overlap)
-dev.new(width = 12, height = 7)
-
-# Fix margins, label sizes, overlapping, axis issues
-par(mar = c(10, 6, 4, 2))   # bottom, left, top, right
-par(oma = c(1, 1, 1, 1))    # outer margins
-par(cex.axis = 0.8)         # axis font size
-par(cex.lab = 0.9)          # label font size
-par(cex.main = 1)           # title size
-
-# Barplot
-barplot(region_confirmed,
-        col = "steelblue",
-        main = "Total Confirmed Cases by WHO Region",
-        xlab = "WHO Region",
-        ylab = "Total Confirmed Cases",
-        las = 2,             # vertical axis labels
-        cex.names = 0.8)     # shrink region names
-
-
-
-
-# =======================================================
-# 2. PIE CHART – Death Share by WHO Region
-# =======================================================
-
-region_deaths <- tapply(country_wise_latest$Deaths,
-                        country_wise_latest$`WHO Region`,
-                        sum, na.rm = TRUE)
-
-pct <- round(region_deaths / sum(region_deaths) * 100, 1)
-labels <- paste(names(region_deaths), pct, "%")
-
-pie(region_deaths,
-    labels = labels,
-    col = rainbow(length(labels)),
-    main = "Share of Global COVID Deaths by WHO Region")
-
-
-
-# =======================================================
-# 3. LINE CHART – Top 5 Countries by Confirmed Cases
-# =======================================================
-
-top5 <- country_wise_latest[order(-country_wise_latest$Confirmed), ][1:5, ]
-
-par(mar = c(8, 6, 4, 2))
-
-plot(top5$Confirmed,
-     type = "o",
-     pch = 19,
-     col = "red",
-     xaxt = "n",
-     main = "Top 5 Countries – Confirmed Cases",
-     xlab = "Country",
-     ylab = "Confirmed Cases")
-
-axis(1,
-     at = 1:5,
-     labels = top5$Country,
-     las = 2,
-     cex.axis = 0.8)
-
-
-
-# =======================================================
-# 4. SCATTER PLOT – Confirmed vs Deaths
-# =======================================================
-
-par(mar = c(6, 6, 4, 2))
-
-plot(country_wise_latest$Confirmed,
-     country_wise_latest$Deaths,
-     pch = 19,
-     col = "darkorange",
-     main = "Confirmed Cases vs Deaths",
-     xlab = "Confirmed Cases",
-     ylab = "Deaths")
-
-abline(lm(Deaths ~ Confirmed, data = country_wise_latest),
-       col = "darkred",
-       lwd = 2)
-
-
-
-# =======================================================
-# 5. STACKED BAR CHART – Confirmed | Recovered | Deaths
-# =======================================================
-
-top5_cases <- country_wise_latest[order(-country_wise_latest$Confirmed), ][1:5, ]
-
-mat <- t(as.matrix(top5_cases[, c("Confirmed", "Recovered", "Deaths")]))
-
-par(mar = c(10, 6, 4, 2))
-
-barplot(mat,
-        beside = FALSE,
-        col = c("skyblue", "lightgreen", "red"),
-        main = "COVID Case Distribution – Top 5 Countries",
-        ylab = "Number of Cases",
-        names.arg = top5_cases$Country,
+par(mar = c(7, 6, 4, 2))  # Increased left margin from 5 to 6
+barplot(top_countries$Confirmed,
+        names.arg = top_countries$`Country/Region`,
+        col = colors_bar,
+        main = "Top 15 Countries by Total Confirmed COVID-19 Cases",
+        xlab = "",
+        ylab = "Confirmed Cases",
         las = 2,
-        cex.names = 0.8)
-
-legend("topleft",
-       legend = rownames(mat),
-       fill = c("skyblue", "lightgreen", "red"))
-
-
-
-# =======================================================
-# 6. CORRELATION – Confirmed vs Deaths
-# =======================================================
-
-cor(country_wise_latest$Confirmed,
-    country_wise_latest$Deaths,
-    use = "complete.obs")
+        cex.names = 0.8,
+        cex.axis = 0.9,
+        ylim = c(0, max(top_countries$Confirmed) * 1.1),
+        mgp = c(4, 1, 0))  # Added mgp to move y-axis label further from axis
+mtext("Country", side = 1, line = 5.5, cex = 1)
+# Add value labels on top of bars
+text(x = seq(0.7, by = 1.2, length.out = 15),
+     y = top_countries$Confirmed,
+     labels = format(top_countries$Confirmed, big.mark = ","),
+     pos = 3, cex = 0.7, col = "black")
 
